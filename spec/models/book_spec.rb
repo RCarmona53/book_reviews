@@ -3,31 +3,41 @@ require 'rails_helper'
 RSpec.describe Book, type: :model do
   let(:book) { Book.create!(title: "Book Test") }
 
-  context "average rating calculation" do
-    it "returns the average rating rounded to one decimal" do
-      book.reviews.create!(rating: 5)
-      book.reviews.create!(rating: 3)
-      book.reviews.create!(rating: 4)
+  describe "#average_rating" do
+    context "with enough valid reviews" do
+      before do
+        book.reviews.create!(rating: 5)
+        book.reviews.create!(rating: 3)
+        book.reviews.create!(rating: 4)
+      end
 
-      expect(book.average_rating).to eq(4.0)
+      it "returns the average rating rounded to one decimal" do
+        expect(book.average_rating).to eq(4.0)
+      end
     end
 
-    it "ignores reviews from banned users" do
-      book.reviews.create!(rating: 5, banned: false)
-      book.reviews.create!(rating: 4, banned: false)
-      book.reviews.create!(rating: 3, banned: true)
-      book.reviews.create!(rating: 2, banned: false)
+    context "ignoring banned reviews" do
+      before do
+        book.reviews.create!(rating: 5, banned: false)
+        book.reviews.create!(rating: 4, banned: false)
+        book.reviews.create!(rating: 3, banned: true)
+        book.reviews.create!(rating: 2, banned: false)
+      end
 
-      expect(book.average_rating).to eq(3.7)
+      it "returns the average only from non-banned reviews" do
+        expect(book.average_rating).to eq(3.7)
+      end
     end
-  end
 
-  context "minimum reviews" do
-    it "shows 'Reseñas Insuficientes' if less than 3 valid reviews" do
-      book.reviews.create!(rating: 5)
-      book.reviews.create!(rating: 4)
+    context "with less than 3 valid reviews" do
+      before do
+        book.reviews.create!(rating: 5)
+        book.reviews.create!(rating: 4)
+      end
 
-      expect(book.average_rating).to eq("Reseñas Insuficientes")
+      it "returns 'Reseñas Insuficientes'" do
+        expect(book.average_rating).to eq("Reseñas Insuficientes")
+      end
     end
   end
 end
